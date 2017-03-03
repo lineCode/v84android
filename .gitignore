@@ -128,3 +128,4 @@ freeline_project_description.json
 cmake-build*
 .idea
 !deps/**/*.a
+!lib/*.a
