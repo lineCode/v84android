@@ -25,27 +25,21 @@ if (CMAKE_SYSTEM_NAME STREQUAL Android)
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined -no-canonical-prefixes -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now")
 endif ()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -O0 -g -Wno-unused-parameter -fno-rtti -fno-exceptions")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-unused-parameter -fno-rtti -fno-exceptions")
 include_directories(src include)
 
-if (CMAKE_SYSTEM_NAME STREQUAL Android)
-    link_directories(lib)
-else ()
+if (CMAKE_SYSTEM_NAME STREQUAL Darwin)
     link_directories(/usr/local/lib/node/)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=10.7")
+else ()
+    link_directories(lib/${CMAKE_SYSTEM_NAME})
 endif ()
 
 # 默认添加库代码
 set(SOURCE_FILES
         src/main.cpp)
 
-if (CMAKE_SYSTEM_NAME STREQUAL Android)
-    # Android 平台上编译为一个 so 文件
-    #    add_library(node STATIC ${SOURCE_FILES})
-    add_executable(v8_android ${SOURCE_FILES})
-
-    set(LINKED_LIBS ${LINKED_LIBS} v8)
-else ()
+if (CMAKE_SYSTEM_NAME STREQUAL Darwin)
     # 非 Android 平台上编译为一个可执行程序
     add_executable(v8_android ${SOURCE_FILES})
 
@@ -58,6 +52,12 @@ else ()
             icudata
             icustubdata
             icuucx)
+else ()
+    # Android 平台上编译为一个 so 文件
+    #    add_library(node STATIC ${SOURCE_FILES})
+    add_executable(v8_android ${SOURCE_FILES})
+
+    set(LINKED_LIBS ${LINKED_LIBS} v8)
 endif ()
 
 set(LINKED_LIBS ${LINKED_LIBS} m dl)

@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "libplatform/libplatform.h"
 #include "v8.h"
 
