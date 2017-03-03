@@ -11,8 +11,8 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_C_STANDARD 99)
 
 # 删除不必要的导出符号
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden -fvisibility-inlines-hidden")
+#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden -fvisibility-inlines-hidden")
 
 # 如果是 Android
 # 需要加入 -DANDROID 宏定义，和 ndk-build 保持相同
@@ -25,7 +25,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL Android)
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined -no-canonical-prefixes -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now")
 endif ()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-unused-parameter -fno-rtti -fno-exceptions")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -O0 -g -Wno-unused-parameter -fno-rtti -fno-exceptions")
 include_directories(src include)
 
 if (CMAKE_SYSTEM_NAME STREQUAL Android)

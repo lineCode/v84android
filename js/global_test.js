@@ -38,4 +38,4 @@ function dump(s, tab, name, obj) {
 }
 
 let s = dump("", 0, "this", this);
-console.log(s);
+log(s);

@@ -100,16 +100,16 @@ int main(int argc, char *argv[])
 
         TryCatch trycatch(isolate);
         // Compile the source code.
-        MaybeLocal<Script> maybeScript = Script::Compile(context, source);
-        if (maybeScript.IsEmpty()) {
-            Local <Value> except = trycatch.Exception();
+        Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+        // Run the script to get the result.
+        MaybeLocal<Value> maybeLocal = script->Run(context);
+        if (maybeLocal.IsEmpty()) {
+            Local<Value> except = trycatch.Exception();
             String::Utf8Value exception_str(except);
             printf("Exception: %s\n", *exception_str);
             puts(">>>>>>>>>>>>>>>>>\n");
         } else {
-            Local <Script> script = maybeScript.ToLocalChecked();
-            // Run the script to get the result.
-            Local<Value> result = script->Run(context).ToLocalChecked();
+            Local<Value> result = maybeLocal.ToLocalChecked();
             // Convert the result to an UTF8 string and print it.
             String::Utf8Value utf8(result);
             printf("%s\n", *utf8);
