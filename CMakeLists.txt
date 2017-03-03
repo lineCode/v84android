@@ -27,7 +27,13 @@ endif ()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-unused-parameter -fno-rtti -fno-exceptions")
 include_directories(src include)
-link_directories(lib)
+
+if (CMAKE_SYSTEM_NAME STREQUAL Android)
+    link_directories(lib)
+else ()
+    link_directories(/usr/local/lib/node/)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=10.7")
+endif ()
 
 # 默认添加库代码
 set(SOURCE_FILES
@@ -35,14 +41,25 @@ set(SOURCE_FILES
 
 if (CMAKE_SYSTEM_NAME STREQUAL Android)
     # Android 平台上编译为一个 so 文件
-#    add_library(node STATIC ${SOURCE_FILES})
+    #    add_library(node STATIC ${SOURCE_FILES})
     add_executable(v8_android ${SOURCE_FILES})
+
+    set(LINKED_LIBS ${LINKED_LIBS} v8)
 else ()
     # 非 Android 平台上编译为一个可执行程序
     add_executable(v8_android ${SOURCE_FILES})
+
+    set(LINKED_LIBS ${LINKED_LIBS}
+            v8_base
+            v8_nosnapshot
+            v8_libplatform
+            v8_libbase
+            icui18n
+            icudata
+            icustubdata
+            icuucx)
 endif ()
 
-set(LINKED_LIBS ${LINKED_LIBS} v8)
 set(LINKED_LIBS ${LINKED_LIBS} m dl)
 
 if (CMAKE_SYSTEM_NAME STREQUAL Linux)

@@ -27,10 +27,49 @@ public:
     }
 };
 
+static bool ReadAll(const char *filename, char **pBuf)
+{
+    FILE *file = fopen(filename, "r");
+    if (file) {
+        size_t size = 1024;
+        size_t count = 0;
+        char *buf = (char *) malloc(size);
+
+        while (!feof(file) && !ferror(file)) {
+            count += fread(buf, 1, size - count - 1, file);
+
+            if (count == size - 1) {
+                size <<= 1;
+                char *newBuf = (char *) realloc(buf, size);
+                if (newBuf == NULL) {
+                    fclose(file);
+                    free(buf);
+                    return false;
+                } else {
+                    buf = newBuf;
+                }
+            }
+        }
+
+        if (feof(file)) {
+            fclose(file);
+            buf[count] = 0;
+            if (pBuf) {
+                *pBuf = buf;
+            }
+            return true;
+        } else {
+            fclose(file);
+            free(buf);
+        }
+    }
+    return false;
+}
+
+
 int main(int argc, char *argv[])
 {
     // Initialize V8.
-    V8::InitializeICU();
     V8::InitializeExternalStartupData(argv[0]);
     Platform *platform = platform::CreateDefaultPlatform();
     V8::InitializePlatform(platform);
@@ -45,20 +84,36 @@ int main(int argc, char *argv[])
         // Create a stack-allocated handle scope.
         HandleScope handle_scope(isolate);
         // Create a new context.
-        Local <Context> context = Context::New(isolate);
+        Local<Context> context = Context::New(isolate);
         // Enter the context for compiling and running the hello world script.
         Context::Scope context_scope(context);
         // Create a string containing the JavaScript source code.
-        Local <String> source =
-                String::NewFromUtf8(isolate, "'Hello' + ', World!'",
-                                    NewStringType::kNormal).ToLocalChecked();
+        Local<String> source;
+        char *buf = nullptr;
+        if (argc > 1 && ReadAll(argv[1], &buf)) {
+            source = String::NewFromUtf8(isolate, buf, NewStringType::kNormal).ToLocalChecked();
+            free(buf);
+        } else {
+            source = String::NewFromUtf8(isolate, "'Hello' + ', World!'",
+                                         NewStringType::kNormal).ToLocalChecked();
+        }
+
+        TryCatch trycatch(isolate);
         // Compile the source code.
-        Local <Script> script = Script::Compile(context, source).ToLocalChecked();
-        // Run the script to get the result.
-        Local <Value> result = script->Run(context).ToLocalChecked();
-        // Convert the result to an UTF8 string and print it.
-        String::Utf8Value utf8(result);
-        printf("%s\n", *utf8);
+        MaybeLocal<Script> maybeScript = Script::Compile(context, source);
+        if (maybeScript.IsEmpty()) {
+            Local <Value> except = trycatch.Exception();
+            String::Utf8Value exception_str(except);
+            printf("Exception: %s\n", *exception_str);
+            puts(">>>>>>>>>>>>>>>>>\n");
+        } else {
+            Local <Script> script = maybeScript.ToLocalChecked();
+            // Run the script to get the result.
+            Local<Value> result = script->Run(context).ToLocalChecked();
+            // Convert the result to an UTF8 string and print it.
+            String::Utf8Value utf8(result);
+            printf("%s\n", *utf8);
+        }
     }
     // Dispose the isolate and tear down V8.
     isolate->Dispose();
